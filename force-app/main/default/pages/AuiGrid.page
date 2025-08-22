@@ -1,0 +1,85 @@
+<apex:page controller="TestClass" >
+<head>
+    
+    <apex:includeScript value="{!URLFOR($Resource.auiGrid, '/AUIGridLicense.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.auiGrid, '/AUIGrid.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.auiGrid, 'AUIGrid_style.css')}"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+    </style>
+    <script>
+        // AUIGrid 생성 후 반환 ID
+        let myGridID;
+
+        // DOMContentLoaded: HTML 완료 시점에 실행
+        document.addEventListener("DOMContentLoaded", () => {
+            // 칼럼 레이아웃 정의
+            const columnLayout = [
+                { dataField: "name", headerText: "Name", width: 140 },
+                { dataField: "country", headerText: "Country", width: 120 },
+                { dataField: "product", headerText: "Product", width: 120 },
+                { dataField: "quantity", headerText: "Quantity" },
+                { dataField: "price", headerText: "Price", dataType: "numeric" },
+                { dataField: "date", headerText: "Date" }
+            ];
+
+            // 그리드 속성 설정
+            const gridProps = {
+                // 편집 가능 여부 (기본값 : false)
+                editable: true
+            };
+
+            // 실제로 #grid_wrap 에 그리드 생성
+            myGridID = AUIGrid.create("#grid_wrap", columnLayout, gridProps);
+
+			// 그리드 cellClick 이벤트 바인딩
+			AUIGrid.bind(myGridID, "cellClick", function(event) {
+				console.log(event);
+				// 그리드 셀 클릭 시 알림 창 띄움움
+                // alert(`${event.type} 이벤트, 클릭한 값: ${event.value}`);
+			});
+            // 데이터 로딩
+   			 /*
+            fetch("./data/normal_100.json").then(response => {
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                return response.json();
+            }).then(data => {
+                // 그리드에 데이터 JSON 데이터 삽입
+                AUIGrid.setGridData(myGridID, data);
+            }).catch(error => {
+                alert("데이터 요청 실패: " + error.message);
+            });
+            */
+        });
+                
+    getRemoteAccount();
+    
+        function getRemoteAccount() {
+             Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.TestClass.getAccount}',
+                	function(result, event){
+            	    	if (event.status) {
+                		console.log(result);
+                            AUIGrid.setGridData(myGridID, result);
+                		// Get DOM IDs for HTML and Visualforce elements like this
+           			 	} else if (event.type === 'exception') {
+                		console.log(event.message + " / " + event.where + "");
+            			} else {
+                		console.log( event.message );
+            			}
+            		}, 
+                	{escape: true}
+                   );
+    		}
+    </script>
+</head>
+
+<body>
+    <h1>AUIGrid Quick Start</h1>
+	<!-- 에이유아이 그리드가 이곳에 생성됩니다. -->
+    <div id="grid_wrap" style="width:800px; height:480px;"></div>
+</body>
+</apex:page>
